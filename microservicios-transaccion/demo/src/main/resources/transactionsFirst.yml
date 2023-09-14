@@ -1,0 +1,188 @@
+openapi: 3.0.0
+info:
+  title: Transaction API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+paths:
+  /transactions:
+    post:
+      summary: Register a new transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        201:
+          description: Transaction successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        default:
+          description: Unexpected error.
+  /transactions/client/{clientId}:
+    get:
+      summary: Get transactions by client ID.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: Client's ID.
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of client's transactions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        404:
+          description: Client not found.
+        default:
+          description: Unexpected error.
+  /transactions/summary/daily/{clientId}:
+    get:
+      summary: Get summary for a client's transactions.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: Client's ID.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Summary of client's transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+        404:
+          description: Client not found.
+        default:
+          description: Unexpected error.
+components:
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID of the transaction.
+        clientId:
+          type: string
+          description: Client ID associated with the transaction.
+        idProductTypeSource:
+          type: string
+          description: Product Type Source ID.
+        sourceNumber:
+          type: string
+          description: Source number associated with the transaction.
+        idProductTypeDestiny:
+          type: string
+          description: Product Type Destiny ID.
+        destinyNumber:
+          type: string
+          description: Destiny number associated with the transaction.
+        amount:
+          type: number
+          format: double
+          description: Amount of the transaction.
+        description:
+          type: string
+          description: Description of the transaction.
+        transactionDate:
+          type: string
+          format: date-time
+          description: Date and time of the transaction.
+        idTransactionType:
+          type: string
+          description: Transaction Type ID.
+
+    ProductType:
+      type: object
+      properties:
+        idProductType:
+          type: string
+          description: Unique ID for the product type.
+        name:
+          type: string
+          description: Name of the product type.
+        description:
+          type: string
+          description: Description of the product type.
+
+    TransactionType:
+      type: object
+      properties:
+        idTransactionType:
+          type: string
+          description: Unique ID for the transaction type.
+        name:
+          type: string
+          description: Name of the transaction type.
+        description:
+          type: string
+          description: Description of the transaction type.
+
+    SummaryResponse:
+      type: object
+      properties:
+        clientId:
+          type: string
+          description: Client ID for which the summary is generated.
+        summaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Summary'
+      required:
+        - clientId
+        - summaries
+
+    AccountDetails:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - ahorro
+            - corriente
+            - plazoFijo
+        owner_clients:
+          type: array
+          items:
+            type: string
+        sign_clients:
+          type: array
+          items:
+            type: string
+        balance:
+          type: number
+        transactionCount:
+          type: integer
+        lastTransactionDate:
+          type: string
+          format: date-time
+      required:
+        - type
+        - balance
+        - owner_clients
+
+    Summary:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: Account ID.
+        averageDailyBalance:
+          type: number
+          format: double
+          description: Average daily balance for the account.
