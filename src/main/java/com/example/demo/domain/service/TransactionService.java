@@ -2,10 +2,9 @@ package com.example.demo.domain.service;
 import com.example.demo.application.ITransactionService;
 import com.example.demo.domain.document.TransactionEntity;
 import com.example.demo.common.mapper.TransactionMapper;
-import com.example.demo.model.AccountDetails;
-import com.example.demo.model.Summary;
-import com.example.demo.model.SummaryResponse;
-import com.example.demo.model.Transaction;
+import com.example.demo.infraestructure.webClients.CuentasRestClient;
+import com.example.demo.infraestructure.webClients.TarjetasRestClient;
+import com.example.demo.model.*;
 import com.example.demo.domain.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -17,7 +16,9 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,10 @@ public class TransactionService implements ITransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private CuentasRestClient cuentasRestClient;
+    @Autowired
+    private TarjetasRestClient tarjetasRestClient;
     /**
      * Método para guardar una transacción.
      *
@@ -107,5 +112,22 @@ public class TransactionService implements ITransactionService {
                 });
     }
 
+    public Mono<Report> getTransactionsReportByClientId(String clientId) {
+        Mono<List<AccountDetails>> accountsMono = cuentasRestClient.getAccountDetailsByClientId(clientId)
+                .collectList();
+
+        Mono<List<CreditCardDetails>> creditCardsMono = tarjetasRestClient.getCreditCardsByClientId(clientId)
+                .collectList();
+
+        return Mono.zip(accountsMono, creditCardsMono)
+                .map(tuple -> {
+                    Report report = new Report();
+                    report.setClientId(clientId);
+                    report.setAccounts(tuple.getT1());
+                    report.setCreditCards(tuple.getT2());
+                    return report;
+                })
+                .defaultIfEmpty(new Report().clientId(clientId));
+    }
 }
 

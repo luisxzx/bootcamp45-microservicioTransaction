@@ -67,6 +67,28 @@ paths:
           description: Client not found.
         default:
           description: Unexpected error.
+  /transactions/reports/{clientId}:
+    get:
+      summary: Get account report by client ID.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: Client's ID.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Report data for the client.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        404:
+          description: Client not found.
+        default:
+          description: Unexpected error.
+
 components:
   schemas:
     Transaction:
@@ -104,7 +126,6 @@ components:
         idTransactionType:
           type: string
           description: Transaction Type ID.
-
     ProductType:
       type: object
       properties:
@@ -117,7 +138,6 @@ components:
         description:
           type: string
           description: Description of the product type.
-
     TransactionType:
       type: object
       properties:
@@ -130,7 +150,6 @@ components:
         description:
           type: string
           description: Description of the transaction type.
-
     SummaryResponse:
       type: object
       properties:
@@ -144,7 +163,6 @@ components:
       required:
         - clientId
         - summaries
-
     AccountDetails:
       type: object
       properties:
@@ -176,6 +194,22 @@ components:
         - balance
         - owner_clients
 
+    CreditCardDetails:
+        type: object
+        properties:
+          id:
+            type: string
+          clientId:
+            type: string
+          limit:
+            type: number
+          cardNumber:
+            type: string
+          balance:
+            type: number
+          availableCredit:
+            type: number
+
     Summary:
       type: object
       properties:
@@ -186,3 +220,17 @@ components:
           type: number
           format: double
           description: Average daily balance for the account.
+    Report:
+      type: object
+      properties:
+        clientId:
+          type: string
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountDetails'
+        creditCards:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditCardDetails'
+
